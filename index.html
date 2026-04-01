@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DropIQ — AI Dropshipping Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04050a;--panel:#0b0e1a;--panel2:#111525;--border:rgba(99,120,255,0.18);--accent:#6378ff;--accent2:#00f0c8;--accent3:#ff4f7b;--text:#e8ecff;--muted:#6b728e;--gold:#f7c84a}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:none}
+#cursor{position:fixed;top:0;left:0;width:14px;height:14px;border-radius:50%;background:var(--accent2);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .08s,height .08s;mix-blend-mode:screen}
+#cursor-ring{position:fixed;top:0;left:0;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--accent);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .08s,height .08s}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.032;pointer-events:none}
+body::after{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(99,120,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(99,120,255,.06) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+#starfield{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:starTwinkle var(--dur) ease-in-out infinite var(--delay)}
+.star.big{box-shadow:0 0 6px 2px rgba(255,255,255,.9),0 0 14px 4px rgba(255,255,255,.5)}
+@keyframes starTwinkle{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(4,5,10,.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-steps{display:flex;gap:6px}
+.nav-step{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:var(--panel);color:var(--muted);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;transition:.25s}
+.nav-step.active{border-color:var(--accent2);color:var(--accent2);background:rgba(0,240,200,.1)}
+.nav-step.done{border-color:var(--accent);color:var(--accent);background:rgba(99,120,255,.12)}
+.page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 40px;opacity:0;pointer-events:none;transform:translateY(30px);transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);z-index:10;overflow-y:auto}
+.page.active{opacity:1;pointer-events:all;transform:translateY(0)}
+#page-hero{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(99,120,255,.18),transparent 70%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,240,200,.10),transparent 60%),var(--bg)}
+.hero-eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--accent2);text-transform:uppercase;border:1px solid rgba(0,240,200,.3);padding:6px 16px;border-radius:20px;background:rgba(0,240,200,.06);margin-bottom:32px;animation:fadeUp .8s .2s both}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,10vw,130px);line-height:.9;letter-spacing:2px;text-align:center;background:linear-gradient(160deg,#fff,var(--accent) 50%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fadeUp .8s .35s both}
+.hero-sub{font-size:17px;color:var(--muted);max-width:520px;text-align:center;line-height:1.7;margin:24px auto 48px;font-weight:300;animation:fadeUp .8s .5s both}
+.btn-primary{display:inline-flex;align-items:center;gap:12px;padding:16px 40px;border-radius:4px;background:linear-gradient(135deg,var(--accent),#4f5fe8);color:#fff;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;transition:.2s;box-shadow:0 0 40px rgba(99,120,255,.4);animation:fadeUp .8s .65s both}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(99,120,255,.6)}
+.hero-stats{display:flex;gap:40px;margin-top:64px;animation:fadeUp .8s .8s both}
+.stat{text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent2)}
+.stat-label{font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.float-card{position:absolute;padding:16px 20px;border-radius:12px;background:var(--panel);border:1px solid var(--border);backdrop-filter:blur(10px);font-size:12px;pointer-events:none;z-index:5;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.float-card-1{top:18%;left:6%;animation:float1 6s ease-in-out infinite}
+.float-card-2{bottom:22%;right:6%;animation:float2 7s ease-in-out infinite}
+.float-card-3{top:30%;right:8%;animation:float3 5.5s ease-in-out infinite}
+.fc-tag{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;margin-bottom:8px}
+.fc-val{font-size:22px;font-weight:600;color:var(--text)}
+.fc-bar{height:4px;background:var(--panel2);border-radius:2px;margin-top:10px;overflow:hidden}
+.fc-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.page-inner{width:100%;max-width:760px;margin:auto}
+.page-header{margin-bottom:36px}
+.page-step-badge{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;margin-bottom:14px}
+.page-step-badge::before{content:'';width:28px;height:1px;background:var(--accent2)}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,6vw,70px);letter-spacing:1px;line-height:1;color:var(--text)}
+.page-title span{color:var(--accent2)}
+.page-desc{margin-top:12px;color:var(--muted);font-size:15px;font-weight:300}
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:48px 32px;text-align:center;background:rgba(99,120,255,.03);cursor:pointer;transition:.3s;position:relative;overflow:hidden;margin-bottom:28px}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent2);background:rgba(0,240,200,.04);box-shadow:0 0 40px rgba(0,240,200,.08)}
+.upload-icon{font-size:48px;margin-bottom:16px;display:block}
+.upload-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.upload-hint{font-size:13px;color:var(--muted)}
+.upload-input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-preview{width:100%;max-height:280px;object-fit:contain;border-radius:12px;display:none;margin:0 auto;position:relative;z-index:1}
+.upload-change-btn{display:none;margin-top:12px;font-size:12px;color:var(--accent);cursor:pointer;font-family:'Space Mono',monospace;background:none;border:none;position:relative;z-index:1}
+.fields-grid{display:grid;gap:18px}
+.fields-grid.col2{grid-template-columns:1fr 1fr}
+@media(max-width:600px){.fields-grid.col2{grid-template-columns:1fr}}
+.field-group{display:flex;flex-direction:column;gap:8px}
+.field-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.field-label .req{color:var(--accent3);margin-left:2px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:14px 18px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;transition:.2s;outline:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,120,255,.15)}
+textarea{resize:vertical;min-height:100px}
+select{cursor:pointer}
+option{background:#1a1f36}
+.range-wrap{display:flex;flex-direction:column;gap:8px}
+.range-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent2);letter-spacing:1px}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--panel2);border-radius:2px;cursor:pointer;border:none;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent2);box-shadow:0 0 12px rgba(0,240,200,.6);cursor:pointer}
+.chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-size:13px;cursor:pointer;transition:.2s;user-select:none}
+.chip.on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,240,200,.08);box-shadow:0 0 12px rgba(0,240,200,.12)}
+.btn-row{display:flex;align-items:center;justify-content:space-between;margin-top:36px}
+.btn-back{background:none;border:1px solid var(--border);color:var(--muted);padding:14px 28px;border-radius:4px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;transition:.2s}
+.btn-back:hover{border-color:var(--accent);color:var(--accent)}
+.btn-next{background:linear-gradient(135deg,var(--accent2),#00c4a6);color:#04050a;padding:14px 36px;border-radius:4px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;border:none;cursor:pointer;font-weight:700;transition:.2s;box-shadow:0 0 30px rgba(0,240,200,.35)}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(0,240,200,.55)}
+.btn-submit{background:linear-gradient(135deg,var(--accent3),#d43060);color:#fff;padding:18px 48px;border-radius:4px;font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px;border:none;cursor:pointer;font-weight:700;box-shadow:0 0 40px rgba(255,79,123,.4);transition:.2s;text-transform:uppercase}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 0 60px rgba(255,79,123,.6)}
+.progress-wrap{position:fixed;bottom:0;left:0;right:0;height:3px;z-index:200;background:rgba(255,255,255,.05)}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 12px var(--accent2)}
+#page-product{background:radial-gradient(ellipse 70% 50% at 0% 50%,rgba(0,240,200,.06),transparent 60%),var(--bg)}
+#page-market{background:radial-gradient(ellipse 70% 50% at 100% 50%,rgba(99,120,255,.08),transparent 60%),var(--bg)}
+#page-profit{background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(255,79,123,.07),transparent 60%),var(--bg)}
+#page-competition{background:radial-gradient(ellipse 60% 50% at 0% 0%,rgba(247,200,74,.06),transparent 60%),var(--bg)}
+#page-loading{background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(99,120,255,.12),transparent 70%),var(--bg)}
+.loading-inner{text-align:center}
+.loading-ring{width:80px;height:80px;border-radius:50%;border:2px solid rgba(99,120,255,.15);border-top-color:var(--accent2);animation:spin 1s linear infinite;margin:0 auto 32px;position:relative}
+.loading-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(255,79,123,.15);border-bottom-color:var(--accent3);animation:spin 1.5s linear reverse infinite}
+.loading-title{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:12px;color:var(--text)}
+.loading-pct{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1;letter-spacing:2px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.loading-track{width:340px;max-width:90vw;height:5px;background:rgba(255,255,255,.07);border-radius:3px;margin:4px auto 0;overflow:hidden}
+.loading-fill{height:100%;border-radius:3px;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent2);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.loading-status{margin-top:18px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;min-height:20px}
+.loading-note{margin-top:28px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);border:1px solid rgba(247,200,74,.25);background:rgba(247,200,74,.05);padding:10px 18px;border-radius:6px;max-width:380px;line-height:1.7;animation:note-pulse 3s ease-in-out infinite}
+.loading-steps{display:flex;flex-direction:column;gap:10px;margin-top:28px;width:360px;max-width:92vw;perspective:900px}
+.lstep{position:relative;height:42px;transform-style:preserve-3d;transition:none}
+.lstep-front,.lstep-back{position:absolute;inset:0;display:flex;align-items:center;gap:14px;padding:0 16px;border-radius:8px;backface-visibility:hidden;-webkit-backface-visibility:hidden;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+.lstep-front{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:rgba(107,114,142,.4);transform:rotateX(0deg)}
+.lstep-back{transform:rotateX(180deg)}
+.lstep-icon{width:22px;height:22px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.lstep-label{flex:1}
+.lstep.active{animation:flip-in .55s cubic-bezier(.4,0,.2,1) forwards}
+.lstep.active .lstep-back{background:linear-gradient(90deg,rgba(0,240,200,.10),rgba(99,120,255,.08));border:1px solid rgba(0,240,200,.35);color:#e8ecff;box-shadow:0 4px 24px rgba(0,240,200,.12)}
+.lstep.active .lstep-icon{background:rgba(0,240,200,.18);color:var(--accent2);box-shadow:0 0 12px rgba(0,240,200,.4);animation:icon-pulse 1.2s ease-in-out infinite}
+.lstep.done{transform:rotateX(180deg)}
+.lstep.done .lstep-back{background:linear-gradient(90deg,rgba(99,120,255,.10),rgba(99,120,255,.05));border:1px solid rgba(99,120,255,.25);color:var(--muted);box-shadow:none}
+.lstep.done .lstep-icon{background:rgba(99,120,255,.15);color:var(--accent);animation:none}
+#page-result{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;opacity:0;pointer-events:none;transition:opacity .55s cubic-bezier(.4,0,.2,1);z-index:10;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
+#page-result.active{opacity:1;pointer-events:all}
+.verdict-splash{width:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px;position:relative;overflow:hidden;flex-shrink:0}
+.verdict-splash::before{content:'';position:absolute;inset:0;z-index:0;transition:.8s}
+.verdict-splash.winner::before{background:radial-gradient(ellipse 80% 70% at 50% 30%,rgba(0,240,200,.15),transparent 70%)}
+.verdict-splash.loser::before{background:radial-gradient(ellipse 80% 70% at 50% 30%,rgba(255,79,123,.15),transparent 70%)}
+.verdict-splash.neutral::before{background:radial-gradient(ellipse 80% 70% at 50% 30%,rgba(247,200,74,.12),transparent 70%)}
+.verdict-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;position:relative;z-index:1;animation:fadeUp .7s .1s both}
+.verdict-mega-icon{font-size:80px;display:block;margin-bottom:24px;position:relative;z-index:1;animation:iconBounce .6s .2s both}
+.verdict-mega-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,14vw,160px);line-height:.88;letter-spacing:2px;text-align:center;position:relative;z-index:1;animation:fadeUp .7s .3s both}
+.verdict-splash.winner .verdict-mega-title{color:var(--accent2);text-shadow:0 0 80px rgba(0,240,200,.4)}
+.verdict-splash.loser .verdict-mega-title{color:var(--accent3);text-shadow:0 0 80px rgba(255,79,123,.4)}
+.verdict-splash.neutral .verdict-mega-title{color:var(--gold);text-shadow:0 0 80px rgba(247,200,74,.4)}
+.verdict-sub{font-size:18px;color:var(--muted);text-align:center;max-width:540px;margin:20px 0 40px;font-weight:300;line-height:1.6;position:relative;z-index:1;animation:fadeUp .7s .4s both}
+.verdict-scores{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;position:relative;z-index:1;animation:fadeUp .7s .5s both;margin-bottom:48px}
+.vscore{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:22px 28px;min-width:140px;text-align:center;backdrop-filter:blur(10px)}
+.vscore-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.vscore-num{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;margin-bottom:10px}
+.vscore-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.vscore-fill{height:100%;border-radius:2px;transition:width 1.8s cubic-bezier(.4,0,.2,1)}
+.scroll-hint{position:relative;z-index:1;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:12px;animation:fadeUp .7s .7s both}
+.breakdown-wrapper{width:100%;max-width:900px;margin:0 auto;padding:60px 24px 80px;flex-shrink:0}
+.breakdown-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:5px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:56px;display:flex;align-items:center;gap:16px;justify-content:center}
+.breakdown-title::before,.breakdown-title::after{content:'';flex:1;max-width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--border))}
+.breakdown-title::after{background:linear-gradient(90deg,var(--border),transparent)}
+.bk-section{margin-bottom:48px;opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.bk-section.visible{opacity:1;transform:translateY(0)}
+.bk-header{display:flex;align-items:flex-start;gap:20px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.bk-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.bk-header-text{flex:1}
+.bk-step-tag{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+.bk-section-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;line-height:1;color:var(--text)}
+.bk-score-pill{margin-left:auto;flex-shrink:0;font-family:'Bebas Neue',sans-serif;font-size:28px;padding:4px 16px;border-radius:8px;line-height:1.2}
+.bk-body{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;font-size:15px;line-height:1.85;color:#b8bdd4;font-weight:300;white-space:pre-wrap}
+.verdict-card{border-radius:20px;padding:40px;margin-bottom:48px;position:relative;overflow:hidden;border:1px solid transparent}
+.verdict-card.winner{background:linear-gradient(135deg,rgba(0,240,200,.08),rgba(99,120,255,.06));border-color:rgba(0,240,200,.3);box-shadow:0 0 80px rgba(0,240,200,.08)}
+.verdict-card.loser{background:linear-gradient(135deg,rgba(255,79,123,.08),rgba(99,120,255,.05));border-color:rgba(255,79,123,.3);box-shadow:0 0 80px rgba(255,79,123,.08)}
+.verdict-card.neutral{background:linear-gradient(135deg,rgba(247,200,74,.08),rgba(99,120,255,.05));border-color:rgba(247,200,74,.3)}
+.vc-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.vc-title{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;margin-bottom:16px}
+.verdict-card.winner .vc-title{color:var(--accent2)}
+.verdict-card.loser .vc-title{color:var(--accent3)}
+.verdict-card.neutral .vc-title{color:var(--gold)}
+.vc-body{font-size:15px;line-height:1.8;color:#b8bdd4;font-weight:300;white-space:pre-wrap}
+.marketing-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.m-chip{padding:8px 16px;border-radius:20px;font-size:12px;background:rgba(99,120,255,.12);border:1px solid rgba(99,120,255,.3);color:var(--accent);font-family:'Space Mono',monospace}
+.result-actions{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;padding:0 24px 80px}
+.restart-btn{display:inline-flex;align-items:center;gap:10px;background:none;border:1px solid var(--border);color:var(--muted);padding:14px 28px;border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;transition:.25s}
+.restart-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.api-error{background:rgba(255,79,123,.1);border:1px solid rgba(255,79,123,.3);border-radius:8px;padding:16px;color:var(--accent3);font-size:14px;margin-top:16px;display:none}
+.img-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px}
+.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+@keyframes float1{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-16px) rotate(1deg)}}
+@keyframes float2{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-20px) rotate(-1deg)}}
+@keyframes float3{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px) rotate(3deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flip-in{0%{transform:rotateX(0deg)}100%{transform:rotateX(180deg)}}
+@keyframes icon-pulse{0%,100%{box-shadow:0 0 8px rgba(0,240,200,.4)}50%{box-shadow:0 0 20px rgba(0,240,200,.8)}}
+@keyframes note-pulse{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes iconBounce{0%{opacity:0;transform:scale(.4) translateY(20px)}70%{transform:scale(1.15) translateY(-5px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+</style>
+</head>
+<body>
+<div id="starfield"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+<nav>
+  <div class="nav-logo">DROPIQ</div>
+  <div class="nav-steps">
+    <div class="nav-step active">★</div>
+    <div class="nav-step">1</div>
+    <div class="nav-step">2</div>
+    <div class="nav-step">3</div>
+    <div class="nav-step">4</div>
+  </div>
+</nav>
+<div class="page active" id="page-hero">
+  <div class="float-card float-card-1"><div class="fc-tag">Viral Score</div><div class="fc-val">94/100</div><div class="fc-bar"><div class="fc-bar-fill" style="width:94%"></div></div></div>
+  <div class="float-card float-card-2"><div class="fc-tag">Profit Margin</div><div class="fc-val">68%</div><div class="fc-bar"><div class="fc-bar-fill" style="width:68%"></div></div></div>
+  <div class="float-card float-card-3"><div class="fc-tag">Competition</div><div class="fc-val">Low 🔥</div></div>
+  <div class="hero-eyebrow">AI-Powered Dropship Intelligence</div>
+  <h1 class="hero-title">DROP<br>IQ</h1>
+  <p class="hero-sub">Upload your product. Answer a few questions. Get an instant AI verdict on whether it's worth selling — and exactly how to market it.</p>
+  <button class="btn-primary" onclick="goTo('product')"><span>Analyze My Product</span><span>→</span></button>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">12K+</div><div class="stat-label">Products Analyzed</div></div>
+    <div class="stat"><div class="stat-num">89%</div><div class="stat-label">Accuracy Rate</div></div>
+    <div class="stat"><div class="stat-num">3.2x</div><div class="stat-label">Avg ROI Boost</div></div>
+  </div>
+</div>
+<div class="page" id="page-product">
+  <div class="page-inner">
+    <div class="page-header"><div class="page-step-badge">Step 01</div><h2 class="page-title">Your <span>Product</span></h2><p class="page-desc">Upload an image and tell us what you're thinking about selling.</p></div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" class="upload-input" accept="image/*" onchange="handleUpload(event)">
+      <div id="upload-default" class="img-placeholder"><span class="upload-icon">📦</span><div class="upload-title">Drop your product image here</div><div class="upload-hint">PNG, JPG, WEBP — up to 10MB</div></div>
+      <img id="upload-preview" class="upload-preview" alt=""><button class="upload-change-btn" id="change-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">↺ Change image</button>
+    </div>
+    <div class="fields-grid col2">
+      <div class="field-group"><label class="field-label">Product Name <span class="req">*</span></label><input type="text" id="f-name" placeholder="e.g. Magnetic Phone Mount"/></div>
+      <div class="field-group"><label class="field-label">Category <span class="req">*</span></label><select id="f-category"><option value="">Select…</option><option>Home & Kitchen</option><option>Beauty & Personal Care</option><option>Electronics & Gadgets</option><option>Fitness & Sports</option><option>Pet Supplies</option><option>Baby & Kids</option><option>Outdoor & Camping</option><option>Fashion & Accessories</option><option>Health & Wellness</option><option>Car Accessories</option><option>Office & Productivity</option><option>Other</option></select></div>
+    </div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">What problem does it solve? <span class="req">*</span></label><textarea id="f-problem" placeholder="Describe the pain point this product addresses…" style="min-height:120px"></textarea></div></div>
+    <div class="fields-grid col2 mt-16">
+      <div class="field-group"><label class="field-label">Target Age</label><select id="f-age"><option value="">Any age</option><option>13–17</option><option>18–24</option><option>25–34</option><option>35–44</option><option>45–54</option><option>55+</option></select></div>
+      <div class="field-group"><label class="field-label">Target Gender</label><select id="f-gender"><option value="">All genders</option><option>Primarily Male</option><option>Primarily Female</option><option>Equally Mixed</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="goTo('hero')">← Back</button><button class="btn-next" onclick="next1()">Continue →</button></div>
+  </div>
+</div>
+<div class="page" id="page-market">
+  <div class="page-inner">
+    <div class="page-header"><div class="page-step-badge">Step 02</div><h2 class="page-title">Market <span>Potential</span></h2><p class="page-desc">Help us understand the demand and uniqueness.</p></div>
+    <div class="fields-grid"><div class="field-group"><label class="field-label">What makes it unique or hard to find locally? <span class="req">*</span></label><textarea id="f-unique" placeholder="Why would someone buy this online?"></textarea></div></div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">Seen this trend anywhere?</label><div class="chip-grid" id="trend-chips"><div class="chip" data-val="TikTok">TikTok</div><div class="chip" data-val="Instagram">Instagram</div><div class="chip" data-val="Pinterest">Pinterest</div><div class="chip" data-val="YouTube">YouTube</div><div class="chip" data-val="Amazon Bestsellers">Amazon Bestsellers</div><div class="chip" data-val="Google Trends">Google Trends</div><div class="chip" data-val="Reddit">Reddit</div><div class="chip" data-val="Found it myself">Found it myself</div></div></div></div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">Wow Factor (visual impressiveness)</label><div class="range-wrap mt-8"><div class="range-val" id="wow-val">5</div><input type="range" min="1" max="10" value="5" id="f-wow" oninput="document.getElementById('wow-val').textContent=this.value"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace"><span>Boring</span><span>Goes Viral</span></div></div></div></div>
+    <div class="fields-grid col2 mt-16">
+      <div class="field-group"><label class="field-label">Monthly Search Volume</label><select id="f-search"><option value="">Unknown</option><option>Very Low (&lt;1K/mo)</option><option>Low (1K–10K/mo)</option><option>Medium (10K–100K/mo)</option><option>High (100K–1M/mo)</option><option>Very High (1M+/mo)</option></select></div>
+      <div class="field-group"><label class="field-label">Seasonality</label><select id="f-seasonal"><option value="Evergreen">Evergreen (year-round)</option><option>Seasonal</option><option>Trend-based</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="goTo('product')">← Back</button><button class="btn-next" onclick="next2()">Continue →</button></div>
+  </div>
+</div>
+<div class="page" id="page-profit">
+  <div class="page-inner">
+    <div class="page-header"><div class="page-step-badge">Step 03</div><h2 class="page-title">Profit <span>Math</span></h2><p class="page-desc">The numbers that determine whether you'll actually make money.</p></div>
+    <div class="fields-grid col2">
+      <div class="field-group"><label class="field-label">Supplier Cost (USD) <span class="req">*</span></label><input type="number" id="f-cost" placeholder="e.g. 8.50" min="0" step="0.01"/></div>
+      <div class="field-group"><label class="field-label">Your Selling Price (USD) <span class="req">*</span></label><input type="number" id="f-price" placeholder="e.g. 34.99" min="0" step="0.01"/></div>
+    </div>
+    <div class="fields-grid col2 mt-16">
+      <div class="field-group"><label class="field-label">Shipping Cost (USD)</label><input type="number" id="f-ship" placeholder="e.g. 3.00" min="0" step="0.01"/></div>
+      <div class="field-group"><label class="field-label">Supplier Location</label><select id="f-supplier"><option>China (AliExpress/CJ)</option><option>USA / Domestic</option><option>Europe</option><option>India</option><option>Other</option></select></div>
+    </div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">Shipping Time to Customer</label><div class="chip-grid" id="ship-chips"><div class="chip" data-val="3-7 days">3–7 days</div><div class="chip" data-val="7-14 days">7–14 days</div><div class="chip on" data-val="14-21 days">14–21 days</div><div class="chip" data-val="21-30 days">21–30 days</div><div class="chip" data-val="30+ days">30+ days</div></div></div></div>
+    <div class="fields-grid col2 mt-16">
+      <div class="field-group"><label class="field-label">Product Weight</label><select id="f-weight"><option>Ultra-light (&lt;100g)</option><option>Light (100g–500g)</option><option>Medium (0.5kg–2kg)</option><option>Heavy (2kg+)</option></select></div>
+      <div class="field-group"><label class="field-label">Fragile?</label><select id="f-fragile"><option value="No">No</option><option value="Somewhat">Somewhat</option><option value="Yes">Yes</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn-back" onclick="goTo('market')">← Back</button><button class="btn-next" onclick="next3()">Continue →</button></div>
+  </div>
+</div>
+<div class="page" id="page-competition">
+  <div class="page-inner">
+    <div class="page-header"><div class="page-step-badge">Step 04</div><h2 class="page-title">Competition &<br><span>Final Details</span></h2><p class="page-desc">The last piece before your AI verdict.</p></div>
+    <div class="fields-grid"><div class="field-group"><label class="field-label">Describe your competition landscape <span class="req">*</span></label><textarea id="f-competition" placeholder="Who else sells this? What's their pricing?"></textarea></div></div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">Platforms to sell on</label><div class="chip-grid" id="platform-chips"><div class="chip on" data-val="Shopify">Shopify</div><div class="chip" data-val="Amazon FBA">Amazon FBA</div><div class="chip" data-val="Etsy">Etsy</div><div class="chip" data-val="eBay">eBay</div><div class="chip" data-val="TikTok Shop">TikTok Shop</div><div class="chip" data-val="Instagram Shop">Instagram Shop</div></div></div></div>
+    <div class="fields-grid mt-16"><div class="field-group"><label class="field-label">Monthly Marketing Budget (USD)</label><div class="range-wrap mt-8"><div class="range-val" id="budget-val">$500</div><input type="range" min="0" max="5000" step="50" value="500" id="f-budget" oninput="document.getElementById('budget-val').textContent='$'+parseInt(this.value).toLocaleString()"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace"><span>$0</span><span>$5,000+</span></div></div></div></div>
+    <div class="fields-grid col2 mt-16">
+      <div class="field-group"><label class="field-label">Experience Level</label><select id="f-experience"><option>Complete beginner</option><option>Some experience (1-2 stores)</option><option>Intermediate (3-10 stores)</option><option>Advanced (10+ stores)</option></select></div>
+      <div class="field-group"><label class="field-label">Additional Notes</label><input type="text" id="f-notes" placeholder="Anything else the AI should know…"/></div>
+    </div>
+    <div class="api-error" id="api-error"></div>
+    <div class="btn-row"><button class="btn-back" onclick="goTo('profit')">← Back</button><button class="btn-submit" onclick="submitAnalysis()">⚡ Run AI Analysis</button></div>
+  </div>
+</div>
+<div class="page" id="page-loading">
+  <div class="loading-inner">
+    <div class="loading-ring"></div>
+    <div class="loading-title">Analyzing Your Product</div>
+    <div class="loading-pct" id="loading-pct">0%</div>
+    <div class="loading-track"><div class="loading-fill" id="loading-fill"></div></div>
+    <div class="loading-status" id="loading-status">Evaluating market demand…</div>
+    <div class="loading-note">★ Stay on this page — your results are being generated!</div>
+    <div class="loading-steps">
+      <div class="lstep" id="lstep-0"><div class="lstep-front"><div class="lstep-icon">01</div><span class="lstep-label">Evaluating market demand</span></div><div class="lstep-back"><div class="lstep-icon">📊</div><span class="lstep-label">Evaluating market demand</span></div></div>
+      <div class="lstep" id="lstep-1"><div class="lstep-front"><div class="lstep-icon">02</div><span class="lstep-label">Calculating profit margins</span></div><div class="lstep-back"><div class="lstep-icon">💰</div><span class="lstep-label">Calculating profit margins</span></div></div>
+      <div class="lstep" id="lstep-2"><div class="lstep-front"><div class="lstep-icon">03</div><span class="lstep-label">Scanning competition landscape</span></div><div class="lstep-back"><div class="lstep-icon">🔍</div><span class="lstep-label">Scanning competition landscape</span></div></div>
+      <div class="lstep" id="lstep-3"><div class="lstep-front"><div class="lstep-icon">04</div><span class="lstep-label">Checking viral potential</span></div><div class="lstep-back"><div class="lstep-icon">🔥</div><span class="lstep-label">Checking viral potential</span></div></div>
+      <div class="lstep" id="lstep-4"><div class="lstep-front"><div class="lstep-icon">05</div><span class="lstep-label">Analyzing target audience</span></div><div class="lstep-back"><div class="lstep-icon">🎯</div><span class="lstep-label">Analyzing target audience</span></div></div>
+      <div class="lstep" id="lstep-5"><div class="lstep-front"><div class="lstep-icon">06</div><span class="lstep-label">Building marketing strategy</span></div><div class="lstep-back"><div class="lstep-icon">📣</div><span class="lstep-label">Building marketing strategy</span></div></div>
+      <div class="lstep" id="lstep-6"><div class="lstep-front"><div class="lstep-icon">07</div><span class="lstep-label">Generating your verdict</span></div><div class="lstep-back"><div class="lstep-icon">⚡</div><span class="lstep-label">Generating your verdict</span></div></div>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-result">
+  <div class="verdict-splash" id="verdict-splash">
+    <div class="verdict-eyebrow" id="verdict-eyebrow">AI VERDICT</div>
+    <span class="verdict-mega-icon" id="verdict-mega-icon">🔍</span>
+    <div class="verdict-mega-title" id="verdict-mega-title">—</div>
+    <p class="verdict-sub">Your full analysis is ready. Scroll down for the complete breakdown.</p>
+    <div class="verdict-scores">
+      <div class="vscore"><div class="vscore-label">Overall Score</div><div class="vscore-num" id="vscore-overall" style="color:var(--accent2)">—</div><div class="vscore-bar"><div class="vscore-fill" id="vbar-overall" style="background:var(--accent2)"></div></div></div>
+      <div class="vscore"><div class="vscore-label">Profit Potential</div><div class="vscore-num" id="vscore-profit" style="color:var(--gold)">—</div><div class="vscore-bar"><div class="vscore-fill" id="vbar-profit" style="background:var(--gold)"></div></div></div>
+      <div class="vscore"><div class="vscore-label">Market Demand</div><div class="vscore-num" id="vscore-demand" style="color:var(--accent)">—</div><div class="vscore-bar"><div class="vscore-fill" id="vbar-demand" style="background:var(--accent)"></div></div></div>
+      <div class="vscore"><div class="vscore-label">Viral Potential</div><div class="vscore-num" id="vscore-viral" style="color:var(--accent3)">—</div><div class="vscore-bar"><div class="vscore-fill" id="vbar-viral" style="background:var(--accent3)"></div></div></div>
+    </div>
+    <div class="scroll-hint">↓ Scroll for full breakdown</div>
+  </div>
+  <div class="breakdown-wrapper">
+    <div class="breakdown-title">Complete AI Breakdown</div>
+    <div class="bk-section" id="bk-demand"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(99,120,255,.12);border:1px solid rgba(99,120,255,.25)">📊</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--accent)">01 — Market Analysis</div><div class="bk-section-title">Market Demand</div></div><div class="bk-score-pill" id="pill-demand" style="background:rgba(99,120,255,.12);color:var(--accent);border:1px solid rgba(99,120,255,.25)">—</div></div><div class="bk-body" id="r-demand">—</div></div>
+    <div class="bk-section" id="bk-profit"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(247,200,74,.12);border:1px solid rgba(247,200,74,.25)">💰</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--gold)">02 — Financial Analysis</div><div class="bk-section-title">Profit Margins</div></div><div class="bk-score-pill" id="pill-profit" style="background:rgba(247,200,74,.12);color:var(--gold);border:1px solid rgba(247,200,74,.25)">—</div></div><div class="bk-body" id="r-profit">—</div></div>
+    <div class="bk-section" id="bk-competition"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(255,79,123,.12);border:1px solid rgba(255,79,123,.25)">🔍</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--accent3)">03 — Competitive Landscape</div><div class="bk-section-title">Competition Scan</div></div><div class="bk-score-pill" id="pill-competition" style="background:rgba(255,79,123,.12);color:var(--accent3);border:1px solid rgba(255,79,123,.25)">—</div></div><div class="bk-body" id="r-competition">—</div></div>
+    <div class="bk-section" id="bk-viral"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(0,240,200,.12);border:1px solid rgba(0,240,200,.25)">🔥</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--accent2)">04 — Shareability</div><div class="bk-section-title">Viral Potential</div></div><div class="bk-score-pill" id="pill-viral" style="background:rgba(0,240,200,.12);color:var(--accent2);border:1px solid rgba(0,240,200,.25)">—</div></div><div class="bk-body" id="r-viral">—</div></div>
+    <div class="bk-section" id="bk-audience"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(99,120,255,.12);border:1px solid rgba(99,120,255,.25)">🎯</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--accent)">05 — Customer Insights</div><div class="bk-section-title">Target Audience</div></div></div><div class="bk-body" id="r-audience">—</div></div>
+    <div class="bk-section" id="bk-marketing"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(0,240,200,.12);border:1px solid rgba(0,240,200,.25)">📣</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--accent2)">06 — Go-To-Market</div><div class="bk-section-title">Marketing Strategy</div></div></div><div class="bk-body" id="r-marketing">—</div><div class="marketing-chips" id="r-channels"></div></div>
+    <div class="bk-section" id="bk-verdict"><div class="bk-header"><div class="bk-icon-wrap" style="background:rgba(247,200,74,.12);border:1px solid rgba(247,200,74,.25)">⚡</div><div class="bk-header-text"><div class="bk-step-tag" style="color:var(--gold)">07 — Final Call</div><div class="bk-section-title">Verdict & Improvements</div></div></div><div class="verdict-card" id="final-verdict-card"><div class="vc-label" id="vc-label">AI VERDICT</div><div class="vc-title" id="vc-title">—</div><div class="vc-body" id="r-improvements">—</div></div></div>
+  </div>
+  <div class="result-actions"><button class="restart-btn" onclick="restart()">↺ Analyze Another Product</button></div>
+</div>
+
+<script>
+let currentPage='hero',uploadedImageB64=null,uploadedMediaType='image/jpeg';
+const progressMap={hero:0,product:20,market:40,profit:60,competition:80,loading:95,result:100};
+
+// Cursor
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+document.addEventListener('mousemove',e=>{
+  const x=e.clientX+'px',y=e.clientY+'px';
+  cur.style.left=x;cur.style.top=y;
+  ring.style.left=x;ring.style.top=y;
+});
+document.addEventListener('mousedown',()=>{cur.style.width='8px';cur.style.height='8px';ring.style.width='48px';ring.style.height='48px'});
+document.addEventListener('mouseup',()=>{cur.style.width='14px';cur.style.height='14px';ring.style.width='38px';ring.style.height='38px'});
+
+function goTo(id){
+  document.getElementById('page-'+currentPage).classList.remove('active');
+  currentPage=id;
+  const t=document.getElementById('page-'+id);
+  t.classList.add('active');t.scrollTop=0;
+  document.getElementById('progress-bar').style.width=(progressMap[id]||0)+'%';
+  const order=['hero','product','market','profit','competition'];
+  const idx=order.indexOf(id);
+  document.querySelectorAll('.nav-step').forEach((el,i)=>{el.classList.remove('active','done');if(i===idx)el.classList.add('active');else if(i<idx)el.classList.add('done')});
+}
+
+document.querySelectorAll('.chip-grid').forEach(g=>g.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on'))));
+function getChips(id){return[...document.querySelectorAll('#'+id+' .chip.on')].map(c=>c.dataset.val).join(', ')}
+
+function handleUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  uploadedMediaType=file.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{uploadedImageB64=ev.target.result.split(',')[1];const p=document.getElementById('upload-preview');p.src=ev.target.result;p.style.display='block';document.getElementById('upload-default').style.display='none';document.getElementById('change-btn').style.display='block'};
+  r.readAsDataURL(file);
+}
+const uz=document.getElementById('upload-zone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleUpload({target:{files:[f]}})});
+
+function next1(){if(!document.getElementById('f-name').value.trim())return alert('Enter a product name.');if(!document.getElementById('f-category').value)return alert('Select a category.');if(!document.getElementById('f-problem').value.trim())return alert('Describe the problem it solves.');goTo('market')}
+function next2(){if(!document.getElementById('f-unique').value.trim())return alert('Describe what makes this product unique.');goTo('profit')}
+function next3(){if(!document.getElementById('f-cost').value)return alert('Enter supplier cost.');if(!document.getElementById('f-price').value)return alert('Enter selling price.');goTo('competition')}
+
+const loadingSteps=[{label:'Evaluating market demand',pct:14},{label:'Calculating profit margins',pct:28},{label:'Scanning competition landscape',pct:42},{label:'Checking viral potential',pct:57},{label:'Analyzing target audience',pct:71},{label:'Building marketing strategy',pct:85},{label:'Generating your verdict',pct:96}];
+let lIdx=0,lTimer,pTimer,cTimer,curPct=0,tgtPct=0;
+
+function startLoading(){
+  clearInterval(lTimer);clearInterval(pTimer);clearInterval(cTimer);
+  lIdx=0;curPct=0;tgtPct=0;
+  for(let i=0;i<7;i++){const el=document.getElementById('lstep-'+i);if(el)el.classList.remove('active','done')}
+  setStep(0);
+  pTimer=setInterval(()=>{if(curPct<tgtPct){curPct=Math.min(curPct+1,tgtPct);document.getElementById('loading-pct').textContent=curPct+'%';document.getElementById('loading-fill').style.width=curPct+'%'}},30);
+  lTimer=setInterval(()=>{lIdx++;if(lIdx<7)setStep(lIdx);else clearInterval(lTimer)},1800);
+}
+function setStep(i){
+  for(let j=0;j<i;j++){const el=document.getElementById('lstep-'+j);if(el){el.classList.remove('active');el.classList.add('done')}}
+  const el=document.getElementById('lstep-'+i);if(el){el.classList.remove('done');el.classList.add('active')}
+  document.getElementById('loading-status').textContent=loadingSteps[i].label+'…';
+  tgtPct=loadingSteps[i].pct;
+}
+
+async function submitAnalysis(){
+  if(!document.getElementById('f-competition').value.trim())return alert('Describe your competition.');
+  const errEl=document.getElementById('api-error');errEl.style.display='none';
+  const d={
+    name:document.getElementById('f-name').value.trim(),
+    category:document.getElementById('f-category').value,
+    problem:document.getElementById('f-problem').value.trim(),
+    age:document.getElementById('f-age').value,
+    gender:document.getElementById('f-gender').value,
+    unique:document.getElementById('f-unique').value.trim(),
+    trends:getChips('trend-chips'),
+    wow:document.getElementById('f-wow').value,
+    search:document.getElementById('f-search').value,
+    seasonal:document.getElementById('f-seasonal').value,
+    cost:document.getElementById('f-cost').value,
+    price:document.getElementById('f-price').value,
+    shipping:document.getElementById('f-ship').value||'0',
+    supplier:document.getElementById('f-supplier').value,
+    shipTime:getChips('ship-chips'),
+    weight:document.getElementById('f-weight').value,
+    fragile:document.getElementById('f-fragile').value,
+    competition:document.getElementById('f-competition').value.trim(),
+    platforms:getChips('platform-chips'),
+    budget:document.getElementById('f-budget').value,
+    experience:document.getElementById('f-experience').value,
+    notes:document.getElementById('f-notes').value.trim()
+  };
+  goTo('loading');startLoading();
+  const margin=d.price&&d.cost?Math.round(((d.price-d.cost-(parseFloat(d.shipping)||0))/d.price)*100):'?';
+  const sys=`You are DropIQ, a dropshipping product analyst. Respond with ONLY raw JSON — no markdown, no backticks, no extra text. Start with { end with }. Fields: verdict (WINNER|AVOID|RISKY), overall (0-100), profit (0-100), demand (0-100), viral (0-100), competition (0-100), demandAnalysis (string), profitAnalysis (string), competitionAnalysis (string), viralAnalysis (string), audienceAnalysis (string), marketing (string), improvements (string), verdictSummary (string), channels (string array of 5).`;
+  const prompt=`Analyze: ${d.name} (${d.category}). Problem: ${d.problem}. Target: ${d.age||'all ages'} ${d.gender||'all genders'}. Unique: ${d.unique}. Trending: ${d.trends||'none'}. Wow: ${d.wow}/10. Search: ${d.search}. Seasonal: ${d.seasonal}. Cost $${d.cost}, price $${d.price}, ship $${d.shipping}, margin ~${margin}%. Supplier: ${d.supplier}, ship time: ${d.shipTime}. Competition: ${d.competition}. Platforms: ${d.platforms}. Budget $${d.budget}/mo. Experience: ${d.experience}. Notes: ${d.notes||'none'}. Return JSON only.`;
+
+  try{
+    // ✅ Calls YOUR backend — not Anthropic directly
+    const res=await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:2000,
+        system:sys,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok){const t=await res.text();throw new Error('API '+res.status+': '+t.slice(0,200))}
+    const result=await res.json();
+    let text=(result.content||[]).map(b=>b.text||'').join('').trim();
+    const s=text.indexOf('{'),e=text.lastIndexOf('}');
+    if(s!==-1&&e>s)text=text.slice(s,e+1);
+    let parsed;try{parsed=JSON.parse(text)}catch{parsed=null}
+    if(parsed)renderResult(parsed);
+    else{goTo('competition');errEl.style.display='block';errEl.textContent='⚠ Could not parse AI response. Please try again.'}
+  }catch(err){
+    console.error(err);goTo('competition');
+    errEl.style.display='block';errEl.textContent='⚠ '+err.message;
+  }
+}
+
+function renderResult(data){
+  const v=(data.verdict||'RISKY').toUpperCase();
+  const vc=v==='WINNER'?'winner':v==='AVOID'?'loser':'neutral';
+  const icons={winner:'🚀',loser:'🚫',neutral:'⚠️'};
+  const labels={winner:'AI VERDICT — SELL THIS PRODUCT',loser:'AI VERDICT — DO NOT SELL THIS',neutral:'AI VERDICT — HIGH RISK'};
+  document.getElementById('verdict-splash').className='verdict-splash '+vc;
+  document.getElementById('verdict-mega-icon').textContent=icons[vc];
+  document.getElementById('verdict-mega-title').textContent=v;
+  document.getElementById('verdict-eyebrow').textContent=labels[vc];
+  const o=Number(data.overall)||60,p=Number(data.profit)||55,dm=Number(data.demand)||65,vr=Number(data.viral)||50;
+  document.getElementById('vscore-overall').textContent=o+'/100';
+  document.getElementById('vscore-profit').textContent=p+'/100';
+  document.getElementById('vscore-demand').textContent=dm+'/100';
+  document.getElementById('vscore-viral').textContent=vr+'/100';
+  setTimeout(()=>{document.getElementById('vbar-overall').style.width=o+'%';document.getElementById('vbar-profit').style.width=p+'%';document.getElementById('vbar-demand').style.width=dm+'%';document.getElementById('vbar-viral').style.width=vr+'%';},700);
+  document.getElementById('r-demand').textContent=data.demandAnalysis||'';
+  document.getElementById('pill-demand').textContent=dm+'/100';
+  document.getElementById('r-profit').textContent=data.profitAnalysis||'';
+  document.getElementById('pill-profit').textContent=p+'/100';
+  document.getElementById('r-competition').textContent=data.competitionAnalysis||'';
+  document.getElementById('pill-competition').textContent=(Number(data.competition)||50)+'/100';
+  document.getElementById('r-viral').textContent=data.viralAnalysis||'';
+  document.getElementById('pill-viral').textContent=vr+'/100';
+  document.getElementById('r-audience').textContent=data.audienceAnalysis||'';
+  document.getElementById('r-marketing').textContent=data.marketing||'';
+  document.getElementById('r-improvements').textContent=(data.verdictSummary?data.verdictSummary+'\n\n':'')+(data.improvements||'');
+  document.getElementById('final-verdict-card').className='verdict-card '+vc;
+  document.getElementById('vc-label').textContent=labels[vc];
+  document.getElementById('vc-title').textContent=v;
+  const ch=document.getElementById('r-channels');ch.innerHTML='';
+  (data.channels||['Facebook Ads','TikTok Ads','Instagram','Google Shopping']).forEach(c=>{const d=document.createElement('div');d.className='m-chip';d.textContent=c;ch.appendChild(d)});
+  goTo('result');
+  setTimeout(()=>document.querySelectorAll('.bk-section').forEach((s,i)=>setTimeout(()=>s.classList.add('visible'),i*100)),400);
+}
+
+function restart(){
+  clearInterval(lTimer);clearInterval(pTimer);clearInterval(cTimer);
+  ['f-name','f-problem','f-unique','f-competition','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['f-category','f-age','f-gender','f-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  ['f-cost','f-price','f-ship'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('f-wow').value=5;document.getElementById('wow-val').textContent='5';
+  document.getElementById('f-budget').value=500;document.getElementById('budget-val').textContent='$500';
+  uploadedImageB64=null;
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('upload-default').style.display='flex';
+  document.getElementById('change-btn').style.display='none';
+  document.querySelectorAll('.chip').forEach(c=>{c.classList.remove('on');if(c.dataset.val==='14-21 days'||c.dataset.val==='Shopify')c.classList.add('on')});
+  document.querySelectorAll('.bk-section').forEach(s=>s.classList.remove('visible'));
+  goTo('hero');
+}
+
+(function(){
+  const sf=document.getElementById('starfield');
+  for(let i=0;i<220;i++){
+    const s=document.createElement('div');
+    const big=Math.random()<.2;
+    s.className=big?'star big':'star';
+    const sz=big?(Math.random()*3+3):(Math.random()*2+1);
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${(Math.random()*98+1).toFixed(2)}%;top:${(Math.random()*98+1).toFixed(2)}%;--dur:${(Math.random()*3+1.5).toFixed(2)}s;--delay:-${(Math.random()*5).toFixed(2)}s`;
+    sf.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>
