@@ -1,5 +1,7 @@
 import { kv } from '@vercel/kv';
 
+const ADMIN_EMAILS = ['lucas.ketchum2011@gmail.com'];
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -9,11 +11,14 @@ export default async function handler(req, res) {
 
   const normalizedEmail = email.toLowerCase().trim();
 
+  // Admin bypass — full unlimited access, no payment needed
+  if (ADMIN_EMAILS.includes(normalizedEmail)) {
+    return res.status(200).json({ access: true, type: 'subscription' });
+  }
+
   if (type === 'onetime' && token) {
-    // Check if token is valid and belongs to this email
     const tokenEmail = await kv.get(`token:${token}`);
     if (tokenEmail && tokenEmail.toLowerCase() === normalizedEmail) {
-      // Delete the token so it can only be used once
       await kv.del(`token:${token}`);
       await kv.del(`onetime:${normalizedEmail}`);
       return res.status(200).json({ access: true, type: 'onetime' });
@@ -22,7 +27,6 @@ export default async function handler(req, res) {
   }
 
   if (type === 'subscription') {
-    // Check if email has an active subscription
     const status = await kv.get(`sub:${normalizedEmail}`);
     if (status === 'active') {
       return res.status(200).json({ access: true, type: 'subscription' });
@@ -30,7 +34,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ access: false, reason: 'No active subscription found' });
   }
 
-  // Check either — used when returning from Stripe
   const subStatus = await kv.get(`sub:${normalizedEmail}`);
   if (subStatus === 'active') {
     return res.status(200).json({ access: true, type: 'subscription' });
