@@ -166,6 +166,39 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .img-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px}
 .mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+#page-payment{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(99,120,255,.15),transparent 70%),var(--bg)}
+.payment-inner{width:100%;max-width:880px;margin:auto;text-align:center}
+.payment-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,6vw,72px);letter-spacing:2px;margin-bottom:12px}
+.payment-sub{color:var(--muted);font-size:16px;font-weight:300;margin-bottom:48px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px}
+@media(max-width:600px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:36px 28px;text-align:left;position:relative;transition:.3s}
+.plan:hover{border-color:var(--accent2);box-shadow:0 0 40px rgba(0,240,200,.08);transform:translateY(-2px)}
+.plan.featured{border-color:var(--accent2);box-shadow:0 0 40px rgba(0,240,200,.1)}
+.plan-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--accent2),#00c4a6);color:#04050a;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;padding:4px 16px;border-radius:20px;font-weight:700;white-space:nowrap}
+.plan-name{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.plan-price{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;color:var(--text);margin-bottom:4px}
+.plan-period{font-size:13px;color:var(--muted);margin-bottom:24px}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.plan-features li{font-size:14px;color:#b8bdd4;display:flex;align-items:center;gap:10px}
+.plan-features li::before{content:'✓';color:var(--accent2);font-weight:700;flex-shrink:0}
+.plan-btn{width:100%;padding:14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;border:none;cursor:pointer;font-weight:700;transition:.2s;text-transform:uppercase}
+.plan-btn-primary{background:linear-gradient(135deg,var(--accent2),#00c4a6);color:#04050a;box-shadow:0 0 30px rgba(0,240,200,.3)}
+.plan-btn-primary:hover{box-shadow:0 0 50px rgba(0,240,200,.5)}
+.plan-btn-secondary{background:rgba(99,120,255,.12);border:1px solid rgba(99,120,255,.3);color:var(--accent)}
+.plan-btn-secondary:hover{background:rgba(99,120,255,.2)}
+#page-access{background:radial-gradient(ellipse 60% 50% at 50% 30%,rgba(0,240,200,.1),transparent 60%),var(--bg)}
+.access-box{background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:48px 40px;max-width:480px;width:100%;text-align:center}
+.access-icon{font-size:48px;margin-bottom:20px;display:block}
+.access-title{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;margin-bottom:8px}
+.access-sub{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.6}
+.access-input{width:100%;padding:14px 18px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;outline:none;margin-bottom:16px;transition:.2s}
+.access-input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(0,240,200,.1)}
+.access-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--accent2),#00c4a6);color:#04050a;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;border:none;border-radius:8px;cursor:pointer;font-weight:700;transition:.2s;text-transform:uppercase}
+.access-btn:hover{box-shadow:0 0 30px rgba(0,240,200,.4)}
+.access-err{color:var(--accent3);font-size:13px;margin-top:12px;display:none;text-align:center}
+.access-back{margin-top:16px;font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline;display:block;width:100%;text-align:center}
+.access-back:hover{color:var(--text)}
 @keyframes float1{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-16px) rotate(1deg)}}
 @keyframes float2{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-20px) rotate(-1deg)}}
 @keyframes float3{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px) rotate(3deg)}}
@@ -199,11 +232,61 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   <div class="hero-eyebrow">AI-Powered Dropship Intelligence</div>
   <h1 class="hero-title">DROP<br>IQ</h1>
   <p class="hero-sub">Upload your product. Answer a few questions. Get an instant AI verdict on whether it's worth selling — and exactly how to market it.</p>
-  <button class="btn-primary" onclick="goTo('product')"><span>Analyze My Product</span><span>→</span></button>
+  <button class="btn-primary" onclick="goTo('payment')"><span>Analyze My Product</span><span>→</span></button>
   <div class="hero-stats">
     <div class="stat"><div class="stat-num">12K+</div><div class="stat-label">Products Analyzed</div></div>
     <div class="stat"><div class="stat-num">89%</div><div class="stat-label">Accuracy Rate</div></div>
     <div class="stat"><div class="stat-num">3.2x</div><div class="stat-label">Avg ROI Boost</div></div>
+  </div>
+</div>
+<!-- PAYMENT PAGE -->
+<div class="page" id="page-payment">
+  <div class="payment-inner">
+    <div class="hero-eyebrow" style="display:inline-block;margin-bottom:20px">Choose Your Plan</div>
+    <h2 class="payment-title">Unlock Your <span style="color:var(--accent2)">AI Verdict</span></h2>
+    <p class="payment-sub">Get an instant AI-powered analysis of your dropshipping product — is it worth selling?</p>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-name">One-Time</div>
+        <div class="plan-price">$3</div>
+        <div class="plan-period">single analysis</div>
+        <ul class="plan-features">
+          <li>1 full product analysis</li>
+          <li>Market demand score</li>
+          <li>Profit margin breakdown</li>
+          <li>Viral potential rating</li>
+          <li>Marketing strategy</li>
+        </ul>
+        <button class="plan-btn plan-btn-secondary" onclick="window.location.href='YOUR_STRIPE_ONE_TIME_LINK'">Get Single Analysis →</button>
+      </div>
+      <div class="plan featured">
+        <div class="plan-badge">BEST VALUE</div>
+        <div class="plan-name">Unlimited</div>
+        <div class="plan-price">$5</div>
+        <div class="plan-period">per month · cancel anytime</div>
+        <ul class="plan-features">
+          <li>Unlimited analyses</li>
+          <li>Market demand score</li>
+          <li>Profit margin breakdown</li>
+          <li>Viral potential rating</li>
+          <li>Marketing strategy</li>
+        </ul>
+        <button class="plan-btn plan-btn-primary" onclick="window.location.href='YOUR_STRIPE_SUBSCRIPTION_LINK'">Start Unlimited →</button>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace">Already paid? <span style="color:var(--accent2);cursor:pointer;text-decoration:underline" onclick="goTo('access')">Click here to access</span></p>
+  </div>
+</div>
+<!-- ACCESS GATE PAGE -->
+<div class="page" id="page-access">
+  <div class="access-box">
+    <span class="access-icon">🔐</span>
+    <div class="access-title">Enter Your Email</div>
+    <p class="access-sub">Enter the email you used to pay and we'll verify your access instantly.</p>
+    <input class="access-input" type="email" id="access-email" placeholder="your@email.com"/>
+    <button class="access-btn" onclick="checkAccess()">Verify Access →</button>
+    <div class="access-err" id="access-err">⚠ No payment found for this email. Please check your email or purchase a plan.</div>
+    <button class="access-back" onclick="goTo('payment')">← Back to plans</button>
   </div>
 </div>
 <div class="page" id="page-product">
@@ -320,7 +403,47 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 <script>
 let currentPage='hero',uploadedImageB64=null,uploadedMediaType='image/jpeg';
-const progressMap={hero:0,product:20,market:40,profit:60,competition:80,loading:95,result:100};
+let sessionEmail='', sessionType='', sessionToken='';
+const progressMap={hero:0,payment:0,access:0,product:20,market:40,profit:60,competition:80,loading:95,result:100};
+
+// Check if returning from Stripe with ?paid=true
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('paid') === 'true') {
+    history.replaceState({}, '', '/');
+    goTo('access');
+  }
+});
+
+async function checkAccess() {
+  const email = document.getElementById('access-email').value.trim();
+  const errEl = document.getElementById('access-err');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = '⚠ Please enter your email.'; errEl.style.display = 'block'; return; }
+  const btn = document.querySelector('.access-btn');
+  btn.textContent = 'Checking...'; btn.disabled = true;
+  try {
+    const res = await fetch('/api/check-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.access) {
+      sessionEmail = email;
+      sessionType = data.type;
+      sessionToken = data.token || '';
+      goTo('product');
+    } else {
+      errEl.textContent = '⚠ No payment found for this email. Please check your email or purchase a plan.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = '⚠ Error checking access. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.textContent = 'Verify Access →'; btn.disabled = false;
+}
 
 // Cursor
 const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
@@ -486,7 +609,8 @@ function restart(){
   document.getElementById('change-btn').style.display='none';
   document.querySelectorAll('.chip').forEach(c=>{c.classList.remove('on');if(c.dataset.val==='14-21 days'||c.dataset.val==='Shopify')c.classList.add('on')});
   document.querySelectorAll('.bk-section').forEach(s=>s.classList.remove('visible'));
-  goTo('hero');
+  // Subscribers can analyze again, one-time users go back to payment
+  if(sessionType==='subscription'){goTo('product');}else{sessionEmail='';sessionType='';sessionToken='';goTo('payment');}
 }
 
 (function(){
